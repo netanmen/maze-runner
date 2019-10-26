@@ -6,7 +6,7 @@ import Notification from '../Notification';
 import MazeGenerator from '../maze/MazeGenerator';
 import Board from '../Board';
 
-const ROUND_TIME = 60;
+const DEFAULT_ROUND_TIME = 31;
 // const ROWS = 17;
 // const COLS = 33;
 const BOARD_ROWS = 4;
@@ -19,27 +19,52 @@ function reducer(state, action) {
         ...state,
         maze: action.payload.maze,
         currentCell: action.payload.maze.startCell,
-        time: ROUND_TIME,
-        isGameActive: true
+        isGameActive: true,
+        roundTime: DEFAULT_ROUND_TIME,
+        timeLeft: DEFAULT_ROUND_TIME,
+        lollipopCell: undefined,
+        icecreamCell: undefined
+      };
+    }
+    case 'createLollipop': {
+      return {
+        ...state,
+        lollipopCell: action.payload.lollipopCell
+      };
+    }
+    case 'createIcecream': {
+      return {
+        ...state,
+        lollipopCell: action.payload.lollipopCell
       };
     }
     case 'decrementTime': {
       return {
         ...state,
-        time: state.time - 1
+        timeLeft: state.timeLeft - 1
       };
     }
     case 'movePlayer': {
       return {
         ...state,
         currentCell: action.payload.currentCell,
-        score: state.score + 10
+        points: state.points + 10
+      };
+    }
+    case 'finishRound': {
+      return {
+        ...state,
+        isGameActive: false,
+        round: state.round + 1,
+        points: state.points + action.payload.bonusPoints
       };
     }
     case 'endGame': {
       return {
         ...state,
         isGameActive: false,
+        round: 1,
+        points: 0,
         hiScore: Math.max(state.hiScore, state.points)
       };
     }
@@ -54,56 +79,102 @@ function App() {
     points: 0,
     round: 1,
     hiScore: 0,
-    time: undefined,
+    roundTime: DEFAULT_ROUND_TIME,
+    timeLeft: DEFAULT_ROUND_TIME,
     maze: undefined,
-    currentCell: undefined
+    currentCell: undefined,
+    lollipopCell: undefined,
+    icecreamCell: undefined
   });
 
+  const handleFinishRound = useCallback(() => {
+    const bonusPoints = state.round * state.timeLeft * 100;
+    dispatch({
+      type: 'finishRound',
+      payload: { bonusPoints: bonusPoints }
+    });
+  }, [state.round, state.timeLeft]);
+
   useEffect(() => {
-    console.log(`Current Cell = ${state.currentCell}`);
-    if (state.maze) {
-      console.log(`Current End Cell = ${state.maze.endCell}`);
-      if (
-        state.currentCell[0] === state.maze.endCell[0] &&
-        state.currentCell[1] === state.maze.endCell[1]
-      ) {
-        console.log(`Congrats! You finished the maze!`);
-        dispatch({
-          type: 'endGame'
-        });
+    if (state.isGameActive && state.maze) {
+      const [currentX, currentY] = state.currentCell;
+      const [goalX, goalY] = state.maze.endCell;
+
+      if (currentX === goalX && currentY === goalY) {
+        handleFinishRound();
       }
     }
-  }, [state.currentCell, state.maze]);
+  }, [state.isGameActive, state.currentCell, state.maze, handleFinishRound]);
 
-  const handleOnEnterKeyPressed = useCallback(() => {
+  const handleStartGame = useCallback(() => {
+    dispatch({
+      type: 'startGame',
+      payload: {
+        maze: new MazeGenerator(BOARD_ROWS, BOARD_COLUMNS).generate()
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     if (!state.isGameActive) {
-      dispatch({
-        type: 'startGame',
-        payload: {
-          maze: new MazeGenerator(BOARD_ROWS, BOARD_COLUMNS).generate(),
-          isGameActive: true
+      const onKeyDown = e => {
+        if (e.keyCode === 13) {
+          handleStartGame();
         }
-      });
+      };
+      window.addEventListener('keydown', onKeyDown);
+
+      return () => {
+        window.removeEventListener('keydown', onKeyDown);
+      };
     }
-  }, [state.isGameActive]);
+  }, [state.isGameActive, handleStartGame]);
+
+  const handleCreateLollipop = useCallback(() => {
+    const lollipopCell = getRandomCell();
+    dispatch({
+      type: 'createLollipop',
+      payload: { lollipopCell: lollipopCell }
+    });
+    console.log(`Lollipop added! Cell: `, lollipopCell);
+    
+  }, []);
+
+  const handleCreateIcecream = useCallback(() => {
+    const icecreamCell = getRandomCell();
+    dispatch({
+      type: 'createIcecream',
+      payload: { icecreamCell: icecreamCell }
+    });
+    console.log(`Icecream added! Cell: `, icecreamCell);
+  }, []);
 
   useEffect(() => {
-    const onKeyDown = e => {
-      if (e.keyCode === 13) {
-        handleOnEnterKeyPressed();
+    if (state.isGameActive) {
+      const timePassedInRound = state.roundTime - state.timeLeft;
+      if (!state.lollipopCell && timePassedInRound === 30) {
+        handleCreateLollipop();
       }
-    };
-    window.addEventListener('keydown', onKeyDown);
+      if (!state.icecreamCell && state.timeLeft === 15) {
+        handleCreateIcecream();
+      }
+    }
+  }, [
+    state.isGameActive,
+    state.lollipopCell,
+    state.icecreamCell,
+    state.roundTime,
+    state.timeLeft,
+    handleCreateLollipop,
+    handleCreateIcecream
+  ]);
 
-    return () => {
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [handleOnEnterKeyPressed]);
-
-  const handleMovement = useCallback(
+  const handleUserMovement = useCallback(
     arrowKeyCode => {
       const [x, y] = state.currentCell;
-      const [topWall, rightWall, bottomWall, leftWall] = state.maze.cells[y * BOARD_COLUMNS + x];
+      const [topWall, rightWall, bottomWall, leftWall] = state.maze.cells[
+        y * BOARD_COLUMNS + x
+      ];
       let newCell = null;
 
       switch (arrowKeyCode) {
@@ -148,17 +219,16 @@ function App() {
     if (state.isGameActive) {
       const onKeyDown = e => {
         if (e.keyCode >= 37 && e.keyCode <= 40) {
-          handleMovement(e.keyCode);
+          handleUserMovement(e.keyCode);
         }
       };
-      console.log(`Current coords = ${state.currentCell}`);
       window.addEventListener('keydown', onKeyDown);
 
       return () => {
         window.removeEventListener('keydown', onKeyDown);
       };
     }
-  }, [state.isGameActive, state.currentCell, handleMovement]);
+  }, [state.isGameActive, handleUserMovement]);
 
   useInterval(
     () => {
@@ -168,21 +238,31 @@ function App() {
   );
 
   useEffect(() => {
-    if (state.time === 0) {
+    if (state.timeLeft === 0) {
       dispatch({ type: 'endGame' });
     }
-  }, [state.time]);
+  }, [state.timeLeft]);
+
+  function getRandomCell() {
+    const randomX = Math.floor(Math.random() * Math.floor(BOARD_ROWS));
+    const randomY = Math.floor(Math.random() * Math.floor(BOARD_COLUMNS));
+    const randomCell = [randomX, randomY];
+    return randomCell;
+  }
 
   return (
     <div className={styles.root}>
       <Header
         hiScore={state.hiScore}
         points={state.points}
-        time={state.time}
+        time={state.timeLeft}
         round={state.round}
       />
       <Board maze={state.maze} currentCell={state.currentCell} />
-      <Notification show={!state.isGameActive} gameOver={state.time === 0} />
+      <Notification
+        show={!state.isGameActive}
+        gameOver={state.timeLeft === 0}
+      />
     </div>
   );
 }
