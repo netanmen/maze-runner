@@ -3,7 +3,7 @@
 
 @font-face {
     font-family: "Joystix";
-    src: local('Joystix'), url('./fonts/joystix/joystix monospace.ttf') format("truetype");
+    src: local('Joystix'), url('./assets/fonts/joystix/joystix monospace.ttf') format("truetype");
 }
 
 * {
