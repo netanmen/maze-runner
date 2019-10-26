@@ -9,8 +9,8 @@ import Board from '../Board';
 const ROUND_TIME = 60;
 // const ROWS = 17;
 // const COLS = 33;
-const ROWS = 4;
-const COLS = 4;
+const BOARD_ROWS = 4;
+const BOARD_COLUMNS = 4;
 
 function reducer(state, action) {
   switch (action.type) {
@@ -29,28 +29,11 @@ function reducer(state, action) {
         time: state.time - 1
       };
     }
-    case 'moveLeft': {
+    case 'movePlayer': {
       return {
         ...state,
-        currentCell: [state.currentCell[0] - 1, state.currentCell[1]]
-      };
-    }
-    case 'moveUp': {
-      return {
-        ...state,
-        currentCell: [state.currentCell[0], state.currentCell[1] - 1]
-      };
-    }
-    case 'moveRight': {
-      return {
-        ...state,
-        currentCell: [state.currentCell[0] + 1, state.currentCell[1]]
-      };
-    }
-    case 'moveDown': {
-      return {
-        ...state,
-        currentCell: [state.currentCell[0], state.currentCell[1] + 1]
+        currentCell: action.payload.currentCell,
+        score: state.score + 10
       };
     }
     case 'endGame': {
@@ -97,7 +80,7 @@ function App() {
       dispatch({
         type: 'startGame',
         payload: {
-          maze: new MazeGenerator(ROWS, COLS).generate(),
+          maze: new MazeGenerator(BOARD_ROWS, BOARD_COLUMNS).generate(),
           isGameActive: true
         }
       });
@@ -117,46 +100,49 @@ function App() {
     };
   }, [handleOnEnterKeyPressed]);
 
-  const handleMovement = useCallback(arrowKeyCode => {
+  const handleMovement = useCallback(
+    arrowKeyCode => {
       const [x, y] = state.currentCell;
-      const currentCellWalls = state.maze.cells[y * COLS + x];
-
-      // console.log('Current X: ', x);
-      // console.log('Current Y: ', y);
-      // console.log('Current index: ', y * COLS + x);
-      // console.log(`Current cell walls: ${currentCellWalls}`, currentCellWalls);
-      // console.log(`End cell: ${state.maze.endCell}`, state.maze.endCell);
+      const [topWall, rightWall, bottomWall, leftWall] = state.maze.cells[y * BOARD_COLUMNS + x];
+      let newCell = null;
 
       switch (arrowKeyCode) {
         case 37:
-          if (x > 0 && !currentCellWalls[3]) {
-            dispatch({ type: 'moveLeft' });
-            // console.log(`LEFT Pressed! Current coords = ${state.currentCell}`);
+          if (x > 0 && !leftWall) {
+            newCell = [x - 1, y];
           }
           break;
         case 38:
-          if (y > 0 && !currentCellWalls[0]) {
-            dispatch({ type: 'moveUp' });
+          if (y > 0 && !topWall) {
+            newCell = [x, y - 1];
           }
-          // console.log(`UP Pressed! Current coords = ${state.currentCell}`);
           break;
         case 39:
-          if (x < COLS && !currentCellWalls[1]) {
-            dispatch({ type: 'moveRight' });
+          if (x < BOARD_COLUMNS && !rightWall) {
+            newCell = [x + 1, y];
           }
-          // console.log(`RIGHT Pressed! Current coords = ${state.currentCell}`);
           break;
         case 40:
-          if (y < ROWS && !currentCellWalls[2]) {
-            dispatch({ type: 'moveDown' });
+          if (y < BOARD_ROWS && !bottomWall) {
+            newCell = [x, y + 1];
           }
-          // console.log(`DOWN Pressed! Current coords = ${state.currentCell}`);
           break;
         default:
-          console.log('Invalid movement direction!');
+          console.error(
+            `No moving direction assigned to pressed key with keycode ${arrowKeyCode}`
+          );
           break;
       }
-    }, [state.currentCell, state.maze]);
+
+      if (newCell) {
+        dispatch({
+          type: 'movePlayer',
+          payload: { currentCell: newCell }
+        });
+      }
+    },
+    [state.currentCell, state.maze]
+  );
 
   useEffect(() => {
     if (state.isGameActive) {
@@ -167,7 +153,7 @@ function App() {
       };
       console.log(`Current coords = ${state.currentCell}`);
       window.addEventListener('keydown', onKeyDown);
-  
+
       return () => {
         window.removeEventListener('keydown', onKeyDown);
       };
