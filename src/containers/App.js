@@ -6,7 +6,7 @@ import Notification from '../Notification';
 import MazeGenerator from '../maze/MazeGenerator';
 import Board from '../Board';
 
-const DEFAULT_ROUND_TIME = 40;
+const DEFAULT_ROUND_TIME = 16;
 // const ROWS = 17;
 // const COLS = 33;
 const BOARD_ROWS = 4;
@@ -20,8 +20,8 @@ function reducer(state, action) {
         maze: action.payload.maze,
         currentCell: action.payload.maze.startCell,
         isGameActive: true,
-        roundTime: DEFAULT_ROUND_TIME,
-        timeLeft: DEFAULT_ROUND_TIME,
+        roundTime: action.payload.roundTime,
+        timeLeft: action.payload.roundTime,
         lollipopCell: undefined,
         icecreamCell: undefined
       };
@@ -79,6 +79,7 @@ function reducer(state, action) {
       return {
         ...state,
         isGameActive: false,
+        roundTime: DEFAULT_ROUND_TIME,
         round: 1,
         points: 0,
         hiScore: Math.max(state.hiScore, state.points)
@@ -169,10 +170,11 @@ function App() {
     dispatch({
       type: 'startGame',
       payload: {
-        maze: new MazeGenerator(BOARD_ROWS, BOARD_COLUMNS).generate()
+        maze: new MazeGenerator(BOARD_ROWS, BOARD_COLUMNS).generate(),
+        roundTime: Math.max(state.timeLeft, DEFAULT_ROUND_TIME)
       }
     });
-  }, []);
+  }, [state.timeLeft]);
 
   useEffect(() => {
     if (!state.isGameActive) {
