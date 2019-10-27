@@ -1,10 +1,12 @@
 import React, {useEffect, useRef, useState} from 'react';
 import styles from './Board.module.css';
 import PropTypes from 'prop-types';
-import logoImage from './logo.svg';
+import logoImage from './assets/images/logo.svg';
+import lollipopImage from './assets/images/lollipop.svg';
+import icecreamImage from './assets/images/ice_cream.svg';
 
 function Board(props) {
-    const {maze, currentCell} = props;
+    const {maze, currentCell, lollipopCell, icecreamCell} = props;
     const canvas = useRef(null);
     const container = useRef(null);
     const [ctx, setCtx] = useState(undefined);
@@ -61,13 +63,33 @@ function Board(props) {
                 }
             }
 
-            const logoSize = 0.75 * Math.min(blockWidth, blockHeight);
-            const image = new Image(logoSize, logoSize);
-            image.onload = () => {
-                ctx.drawImage(image, currentCell[0] * blockWidth + xOffset + (blockWidth - logoSize) / 2, currentCell[1] * blockHeight + (blockHeight - logoSize) / 2, logoSize, logoSize);
+            const imageSize = 0.75 * Math.min(blockWidth, blockHeight);
+
+            const player = new Image(imageSize, imageSize);
+            player.onload = () => {
+                ctx.drawImage(player, currentCell[0] * blockWidth + xOffset + (blockWidth - imageSize) / 2, currentCell[1] * blockHeight + (blockHeight - imageSize) / 2, imageSize, imageSize);
 
             };
-            image.src = logoImage;
+            player.src = logoImage;
+
+            if (lollipopCell) {
+                const lollipop = new Image(imageSize, imageSize);
+                lollipop.onload = () => {
+                    ctx.drawImage(lollipop, lollipopCell[0] * blockWidth + xOffset + (blockWidth - imageSize) / 2, lollipopCell[1] * blockHeight + (blockHeight - imageSize) / 2, imageSize, imageSize);
+    
+                };
+                lollipop.src = lollipopImage;
+            }
+
+            if (icecreamCell) {
+                console.log('icecream added! icecreamCell: ', icecreamCell);
+                const icecream = new Image(imageSize, imageSize);
+                icecream.onload = () => {
+                    ctx.drawImage(icecream, icecreamCell[0] * blockWidth + xOffset + (blockWidth - imageSize) / 2, icecreamCell[1] * blockHeight + (blockHeight - imageSize) / 2, imageSize, imageSize);
+    
+                };
+                icecream.src = icecreamImage;
+            }
 
             const textSize = Math.min(blockWidth, blockHeight);
             ctx.fillStyle = 'red';
@@ -77,7 +99,7 @@ function Board(props) {
         };
 
         draw();
-    }, [ctx, currentCell, maze]);
+    }, [ctx, currentCell, maze, lollipopCell, icecreamCell]);
 
     return (
         <div

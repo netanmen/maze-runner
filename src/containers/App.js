@@ -6,7 +6,7 @@ import Notification from '../Notification';
 import MazeGenerator from '../maze/MazeGenerator';
 import Board from '../Board';
 
-const DEFAULT_ROUND_TIME = 31;
+const DEFAULT_ROUND_TIME = 40;
 // const ROWS = 17;
 // const COLS = 33;
 const BOARD_ROWS = 4;
@@ -35,7 +35,7 @@ function reducer(state, action) {
     case 'createIcecream': {
       return {
         ...state,
-        lollipopCell: action.payload.lollipopCell
+        icecreamCell: action.payload.icecreamCell
       };
     }
     case 'decrementTime': {
@@ -49,6 +49,22 @@ function reducer(state, action) {
         ...state,
         currentCell: action.payload.currentCell,
         points: state.points + 10
+      };
+    }
+    case 'lollipopBonus': {
+      return {
+        ...state,
+        lollipopCell: undefined,
+        points: state.points + action.payload.bonusPoints,
+        timeLeft: state.timeLeft + action.payload.bonusTime
+      };
+    }
+    case 'icecreamBonus': {
+      return {
+        ...state,
+        icecreamCell: undefined,
+        points: state.points + action.payload.bonusPoints,
+        timeLeft: state.timeLeft + action.payload.bonusTime
       };
     }
     case 'finishRound': {
@@ -86,6 +102,46 @@ function App() {
     lollipopCell: undefined,
     icecreamCell: undefined
   });
+  
+    const areCellsEqual = useCallback((sourceCell, targetCell) => {
+      if (!targetCell) {
+        throw new Error(
+          'ERROR at hasUserReachedCell: no targetCell.',
+          targetCell
+        );
+      }
+      if (!sourceCell) {
+        throw new Error(
+          'ERROR at hasUserReachedCell: no sourceCell.',
+          sourceCell
+        );
+      }
+      const [sourceX, sourceY] = sourceCell;
+      const [targetX, targetY] = targetCell;
+      if (sourceX === targetX && sourceY === targetY) {
+        return true;
+      } else {
+        return false;
+      }
+    }, []);
+
+  const hasUserReachedCell = useCallback(targetCell => {
+      return areCellsEqual(state.currentCell, targetCell);
+    }, [state.currentCell, areCellsEqual]
+  );
+
+  const getRandomCell = useCallback(() => {
+    const randomX = Math.floor(Math.random() * Math.floor(BOARD_ROWS));
+    const randomY = Math.floor(Math.random() * Math.floor(BOARD_COLUMNS));
+    let randomCell = [randomX, randomY];
+    if (!!state.maze && areCellsEqual(randomCell, state.maze.endCell)) {
+      randomCell = getRandomCell();
+    }
+    if (!!state.lollipopCell && areCellsEqual(randomCell, state.lollipopCell)) {
+      randomCell = getRandomCell();
+    }
+    return randomCell;
+  }, [state.maze, state.lollipopCell, areCellsEqual]);
 
   const handleFinishRound = useCallback(() => {
     const bonusPoints = state.round * state.timeLeft * 100;
@@ -97,14 +153,17 @@ function App() {
 
   useEffect(() => {
     if (state.isGameActive && state.maze) {
-      const [currentX, currentY] = state.currentCell;
-      const [goalX, goalY] = state.maze.endCell;
-
-      if (currentX === goalX && currentY === goalY) {
+      if (hasUserReachedCell(state.maze.endCell)) {
         handleFinishRound();
       }
     }
-  }, [state.isGameActive, state.currentCell, state.maze, handleFinishRound]);
+  }, [
+    state.isGameActive,
+    state.currentCell,
+    state.maze,
+    handleFinishRound,
+    hasUserReachedCell
+  ]);
 
   const handleStartGame = useCallback(() => {
     dispatch({
@@ -137,8 +196,7 @@ function App() {
       payload: { lollipopCell: lollipopCell }
     });
     console.log(`Lollipop added! Cell: `, lollipopCell);
-    
-  }, []);
+  }, [getRandomCell]);
 
   const handleCreateIcecream = useCallback(() => {
     const icecreamCell = getRandomCell();
@@ -147,7 +205,7 @@ function App() {
       payload: { icecreamCell: icecreamCell }
     });
     console.log(`Icecream added! Cell: `, icecreamCell);
-  }, []);
+  }, [getRandomCell]);
 
   useEffect(() => {
     if (state.isGameActive) {
@@ -169,6 +227,48 @@ function App() {
     handleCreateIcecream
   ]);
 
+  const handleLollipopBonus = useCallback(() => {
+    dispatch({
+      type: 'lollipopBonus',
+      payload: {
+        bonusPoints: 5000,
+        bonusTime: 15
+      }
+    });
+  }, []);
+
+  const handleIcecreamBonus = useCallback(() => {
+    dispatch({
+      type: 'icecreamBonus',
+      payload: {
+        bonusPoints: 10000,
+        bonusTime: 30
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (state.isGameActive) {
+      if (state.lollipopCell) {
+        if (hasUserReachedCell(state.lollipopCell)) {
+          handleLollipopBonus();
+        }
+      }
+      if (state.icecreamCell) {
+        if (hasUserReachedCell(state.icecreamCell)) {
+          handleIcecreamBonus();
+        }
+      }
+    }
+  }, [
+    state.isGameActive,
+    state.lollipopCell,
+    state.icecreamCell,
+    handleIcecreamBonus,
+    handleLollipopBonus,
+    hasUserReachedCell
+  ]);
+
   const handleUserMovement = useCallback(
     arrowKeyCode => {
       const [x, y] = state.currentCell;
@@ -179,22 +279,22 @@ function App() {
 
       switch (arrowKeyCode) {
         case 37:
-          if (x > 0 && !leftWall) {
+          if (!leftWall && x > 0) {
             newCell = [x - 1, y];
           }
           break;
         case 38:
-          if (y > 0 && !topWall) {
+          if (!topWall && y > 0) {
             newCell = [x, y - 1];
           }
           break;
         case 39:
-          if (x < BOARD_COLUMNS && !rightWall) {
+          if (!rightWall && x < BOARD_COLUMNS) {
             newCell = [x + 1, y];
           }
           break;
         case 40:
-          if (y < BOARD_ROWS && !bottomWall) {
+          if (!bottomWall && y < BOARD_ROWS) {
             newCell = [x, y + 1];
           }
           break;
@@ -243,13 +343,6 @@ function App() {
     }
   }, [state.timeLeft]);
 
-  function getRandomCell() {
-    const randomX = Math.floor(Math.random() * Math.floor(BOARD_ROWS));
-    const randomY = Math.floor(Math.random() * Math.floor(BOARD_COLUMNS));
-    const randomCell = [randomX, randomY];
-    return randomCell;
-  }
-
   return (
     <div className={styles.root}>
       <Header
@@ -258,7 +351,12 @@ function App() {
         time={state.timeLeft}
         round={state.round}
       />
-      <Board maze={state.maze} currentCell={state.currentCell} />
+      <Board
+        maze={state.maze}
+        currentCell={state.currentCell}
+        lollipopCell={state.lollipopCell}
+        icecreamCell={state.icecreamCell}
+      />
       <Notification
         show={!state.isGameActive}
         gameOver={state.timeLeft === 0}
