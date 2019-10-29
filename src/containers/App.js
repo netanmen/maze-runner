@@ -6,8 +6,10 @@ import MazeGenerator from '../maze/MazeGenerator';
 import Board from '../Board';
 import Header from '../Header';
 import Notification from '../Notification';
+import activeRoundAudio from '../assets/audio/maze.mp3';
+import finishRoundAudio from '../assets/audio/level_end.mp3';
+import Audio from '../components/Audio';
 
-import Audio from "../components/Audio";
 
 const DEFAULT_ROUND_TIME = 16;
 // const ROWS = 17;
@@ -27,7 +29,8 @@ function reducer(state, action) {
         timeLeft: action.payload.roundTime,
         lollipopCell: undefined,
         icecreamCell: undefined,
-        audio: action.payload.audio
+        audio: activeRoundAudio,
+        play: true
       };
     }
     case 'createLollipop': {
@@ -76,7 +79,9 @@ function reducer(state, action) {
         ...state,
         isGameActive: false,
         round: state.round + 1,
-        points: state.points + action.payload.bonusPoints
+        points: state.points + action.payload.bonusPoints,
+        audio: finishRoundAudio,
+        play: false
       };
     }
     case 'endGame': {
@@ -86,7 +91,8 @@ function reducer(state, action) {
         roundTime: DEFAULT_ROUND_TIME,
         round: 1,
         points: 0,
-        hiScore: Math.max(state.hiScore, state.points)
+        hiScore: Math.max(state.hiScore, state.points),
+        play: false
       };
     }
     default:
@@ -106,7 +112,8 @@ function App() {
     currentCell: undefined,
     lollipopCell: undefined,
     icecreamCell: undefined,
-    audio: undefined
+    audio: undefined,
+    play: undefined
   });
 
   const areCellsEqual = useCallback((sourceCell, targetCell) => {
@@ -174,73 +181,84 @@ function App() {
   ]);
 
   const handleAudio = useCallback(() => {
+    // const audio = document.getElementById('audio').play();
     const audio = document.getElementById('audio');
-    const src = document.getElementById('src');
+    if (state.play) {
+      audio.src = activeRoundAudio;
+      audio.loop = true;
+      audio.currentTime = 0;
+      audio.play();
+    }
+    if (state.play === false) {
+      audio.src = finishRoundAudio;
+      audio.loop = false;
+      audio.play();
+    }
+    // state.play ? audio.play() : audio.pause();
+    console.log('state.play', state.play);
+    // const src = document.getElementById('src');
 
     // const audio = new Audio();
     // audio.src = '../assets/audio/maze.mp3';
     // audio.src = '../assets/audio/maze.mp3';
     // audio.loop = true;
-    audio.play();
-    const playPromise = audio.play();
-    playPromise
-      .then(() => {
-    console.log('Inside first promise: ',playPromise);
-    console.log({ playPromise });
-      })
-      .catch(err => console.error('Error in playPromise!', err));
+    // const playPromise = audio.play();
+    // playPromise
+    //   .then(() => {
+    //     console.log('Inside first promise: ', playPromise);
+    //     console.log({ playPromise });
+    //   })
+    //   .catch(err => console.error('Error in playPromise!', err));
 
-    if (playPromise !== undefined) {
-    console.log('Inside SECOND before THEN promise: ',playPromise);
-    playPromise
-        .then(() => {
-    console.log('Inside SECOND promise: ',playPromise);
-    console.log({ playPromise });
-        })
-        .catch(err => console.error('Error in playPromise!', err));
-    }
+    // if (playPromise !== undefined) {
+    //   console.log('Inside SECOND before THEN promise: ', playPromise);
+    //   playPromise
+    //     .then(() => {
+    //       console.log('Inside SECOND promise: ', playPromise);
+    //       console.log({ playPromise });
+    //     })
+    //     .catch(err => console.error('Error in playPromise!', err));
+    // }
 
-    console.log({ audio });
-    console.log({ src });
-    console.log('After promise: ',playPromise);
-  }, []);
-  
+    // console.log({ audio });
+    // console.log({ src });
+    // console.log('After promise: ', playPromise);
+  }, [state.play]);
+
   useEffect(() => {
     handleAudio();
-    const audio = document.getElementById('audio');
-    const src = document.getElementById('src');
+    // const audio = document.getElementById('audio');
+    // const src = document.getElementById('src');
 
-    // const audio = new Audio();
-    // audio.src = '../assets/audio/maze.mp3';
-    // audio.src = '../assets/audio/maze.mp3';
-    // audio.loop = true;
-    audio.play();
-    const playPromise = audio.play();
-    playPromise
-      .then(() => {
-    console.log('Inside first promise: ',playPromise);
-    console.log({ playPromise });
-      })
-      .catch(err => console.error('Error in playPromise!', err));
+    // // const audio = new Audio();
+    // // audio.src = '../assets/audio/maze.mp3';
+    // // audio.src = '../assets/audio/maze.mp3';
+    // // audio.loop = true;
+    // audio.play();
+    // const playPromise = audio.play();
+    // playPromise
+    //   .then(() => {
+    //     console.log('Inside first promise: ', playPromise);
+    //     console.log({ playPromise });
+    //   })
+    //   .catch(err => console.error('Error in playPromise!', err));
 
-    if (playPromise !== undefined) {
-    console.log('Inside SECOND before THEN promise: ',playPromise);
-    playPromise
-        .then(() => {
-    console.log('Inside SECOND promise: ',playPromise);
-    console.log({ playPromise });
-        })
-        .catch(err => console.error('Error in playPromise!', err));
-    }
+    // if (playPromise !== undefined) {
+    //   console.log('Inside SECOND before THEN promise: ', playPromise);
+    //   playPromise
+    //     .then(() => {
+    //       console.log('Inside SECOND promise: ', playPromise);
+    //       console.log({ playPromise });
+    //     })
+    //     .catch(err => console.error('Error in playPromise!', err));
+    // }
 
-    console.log({ audio });
-    console.log({ src });
-    console.log('After promise: ',playPromise);
+    // console.log({ audio });
+    // console.log({ src });
+    // console.log('After promise: ', playPromise);
+  }, [handleAudio]);
 
-  }, [handleAudio])
-
-  const handleStartGame = useCallback(() => {
-    dispatch({
+  const handleStartGame = useCallback(() => {dispatch({
       type: 'startGame',
       payload: {
         maze: new MazeGenerator(BOARD_ROWS, BOARD_COLUMNS).generate(),
@@ -347,8 +365,7 @@ function App() {
     hasUserReachedCell
   ]);
 
-  const handleUserMovement = useCallback(
-    arrowKeyCode => {
+  const handleUserMovement = useCallback(arrowKeyCode => {
       const [x, y] = state.currentCell;
       const [topWall, rightWall, bottomWall, leftWall] = state.maze.cells[
         y * BOARD_COLUMNS + x
@@ -420,20 +437,14 @@ function App() {
       dispatch({ type: 'endGame' });
     }
   }, [state.timeLeft]);
-
+  
+  // <source src="./maze.mp3"/>
   // <audio ref={ref => (state.audio = ref)} />
   return (
     <div className={styles.root}>
-      <Audio/>
+      {/* <Audio /> */}
       <div>
-        <audio controls>
-          <source src="./maze.mp3" type="audio/mpeg" />
-          Your browser does not support the audio element.
-        </audio>
-      </div>
-      <div>
-        <audio id="audio">
-          <source id="src" src="./maze.mp3" type="audio/mpeg" />
+        <audio controls id="audio" src={activeRoundAudio}>
           Your browser does not support the <code>audio</code> element.
         </audio>
       </div>
