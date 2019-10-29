@@ -1,10 +1,13 @@
 import React, { useCallback, useEffect, useReducer } from 'react';
-import styles from './App.module.css';
 import useInterval from '@use-it/interval';
-import Header from '../Header';
-import Notification from '../Notification';
+
+import styles from './App.module.css';
 import MazeGenerator from '../maze/MazeGenerator';
 import Board from '../Board';
+import Header from '../Header';
+import Notification from '../Notification';
+
+import Audio from "../components/Audio";
 
 const DEFAULT_ROUND_TIME = 16;
 // const ROWS = 17;
@@ -23,7 +26,8 @@ function reducer(state, action) {
         roundTime: action.payload.roundTime,
         timeLeft: action.payload.roundTime,
         lollipopCell: undefined,
-        icecreamCell: undefined
+        icecreamCell: undefined,
+        audio: action.payload.audio
       };
     }
     case 'createLollipop': {
@@ -101,34 +105,37 @@ function App() {
     maze: undefined,
     currentCell: undefined,
     lollipopCell: undefined,
-    icecreamCell: undefined
+    icecreamCell: undefined,
+    audio: undefined
   });
-  
-    const areCellsEqual = useCallback((sourceCell, targetCell) => {
-      if (!targetCell) {
-        throw new Error(
-          'ERROR at hasUserReachedCell: no targetCell.',
-          targetCell
-        );
-      }
-      if (!sourceCell) {
-        throw new Error(
-          'ERROR at hasUserReachedCell: no sourceCell.',
-          sourceCell
-        );
-      }
-      const [sourceX, sourceY] = sourceCell;
-      const [targetX, targetY] = targetCell;
-      if (sourceX === targetX && sourceY === targetY) {
-        return true;
-      } else {
-        return false;
-      }
-    }, []);
 
-  const hasUserReachedCell = useCallback(targetCell => {
+  const areCellsEqual = useCallback((sourceCell, targetCell) => {
+    if (!targetCell) {
+      throw new Error(
+        'ERROR at hasUserReachedCell: no targetCell.',
+        targetCell
+      );
+    }
+    if (!sourceCell) {
+      throw new Error(
+        'ERROR at hasUserReachedCell: no sourceCell.',
+        sourceCell
+      );
+    }
+    const [sourceX, sourceY] = sourceCell;
+    const [targetX, targetY] = targetCell;
+    if (sourceX === targetX && sourceY === targetY) {
+      return true;
+    } else {
+      return false;
+    }
+  }, []);
+
+  const hasUserReachedCell = useCallback(
+    targetCell => {
       return areCellsEqual(state.currentCell, targetCell);
-    }, [state.currentCell, areCellsEqual]
+    },
+    [state.currentCell, areCellsEqual]
   );
 
   const getRandomCell = useCallback(() => {
@@ -166,12 +173,79 @@ function App() {
     hasUserReachedCell
   ]);
 
+  const handleAudio = useCallback(() => {
+    const audio = document.getElementById('audio');
+    const src = document.getElementById('src');
+
+    // const audio = new Audio();
+    // audio.src = '../assets/audio/maze.mp3';
+    // audio.src = '../assets/audio/maze.mp3';
+    // audio.loop = true;
+    audio.play();
+    const playPromise = audio.play();
+    playPromise
+      .then(() => {
+    console.log('Inside first promise: ',playPromise);
+    console.log({ playPromise });
+      })
+      .catch(err => console.error('Error in playPromise!', err));
+
+    if (playPromise !== undefined) {
+    console.log('Inside SECOND before THEN promise: ',playPromise);
+    playPromise
+        .then(() => {
+    console.log('Inside SECOND promise: ',playPromise);
+    console.log({ playPromise });
+        })
+        .catch(err => console.error('Error in playPromise!', err));
+    }
+
+    console.log({ audio });
+    console.log({ src });
+    console.log('After promise: ',playPromise);
+  }, []);
+  
+  useEffect(() => {
+    handleAudio();
+    const audio = document.getElementById('audio');
+    const src = document.getElementById('src');
+
+    // const audio = new Audio();
+    // audio.src = '../assets/audio/maze.mp3';
+    // audio.src = '../assets/audio/maze.mp3';
+    // audio.loop = true;
+    audio.play();
+    const playPromise = audio.play();
+    playPromise
+      .then(() => {
+    console.log('Inside first promise: ',playPromise);
+    console.log({ playPromise });
+      })
+      .catch(err => console.error('Error in playPromise!', err));
+
+    if (playPromise !== undefined) {
+    console.log('Inside SECOND before THEN promise: ',playPromise);
+    playPromise
+        .then(() => {
+    console.log('Inside SECOND promise: ',playPromise);
+    console.log({ playPromise });
+        })
+        .catch(err => console.error('Error in playPromise!', err));
+    }
+
+    console.log({ audio });
+    console.log({ src });
+    console.log('After promise: ',playPromise);
+
+  }, [handleAudio])
+
   const handleStartGame = useCallback(() => {
     dispatch({
       type: 'startGame',
       payload: {
         maze: new MazeGenerator(BOARD_ROWS, BOARD_COLUMNS).generate(),
-        roundTime: Math.max(state.timeLeft, DEFAULT_ROUND_TIME)
+        roundTime: Math.max(state.timeLeft, DEFAULT_ROUND_TIME),
+        audio: undefined
       }
     });
   }, [state.timeLeft]);
@@ -190,6 +264,8 @@ function App() {
       };
     }
   }, [state.isGameActive, handleStartGame]);
+
+  useEffect(() => {}, []);
 
   const handleCreateLollipop = useCallback(() => {
     const lollipopCell = getRandomCell();
@@ -345,8 +421,22 @@ function App() {
     }
   }, [state.timeLeft]);
 
+  // <audio ref={ref => (state.audio = ref)} />
   return (
     <div className={styles.root}>
+      <Audio/>
+      <div>
+        <audio controls>
+          <source src="./maze.mp3" type="audio/mpeg" />
+          Your browser does not support the audio element.
+        </audio>
+      </div>
+      <div>
+        <audio id="audio">
+          <source id="src" src="./maze.mp3" type="audio/mpeg" />
+          Your browser does not support the <code>audio</code> element.
+        </audio>
+      </div>
       <Header
         hiScore={state.hiScore}
         points={state.points}
