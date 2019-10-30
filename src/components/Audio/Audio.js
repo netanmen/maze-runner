@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 
 function Audio({source, handleAudioEnd, shouldLoop}) {
   const audioElement = useRef(null)
@@ -20,5 +21,10 @@ function Audio({source, handleAudioEnd, shouldLoop}) {
     </div>
   );
 }
+
+Audio.propTypes = {
+  handleAudioEnd: PropTypes.func,
+  shouldLoop: PropTypes.bool
+};
 
 export default Audio;

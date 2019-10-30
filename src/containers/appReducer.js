@@ -15,8 +15,8 @@ function appReducer(state, action) {
         timeLeft: DEFAULT_ROUND_TIME,
         round: 1,
         points: 0,
-        lollipopCell: undefined,
-        icecreamCell: undefined,
+        lollipopCell: null,
+        icecreamCell: null,
         audioSource: activeRoundAudio
       };
     }

@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useReducer } from 'react';
 import useInterval from '@use-it/interval';
 
+import { DEFAULT_ROUND_TIME, BOARD_ROWS, BOARD_COLUMNS } from '../constants';
 import styles from './App.module.css';
 import appReducer from './appReducer';
-import MazeGenerator from '../components/Maze/MazeGenerator';
+import MazeGenerator from '../MazeGenerator';
 import Board from '../components/Board/Board';
 import Header from '../components/Header/Header';
 import Notification from '../components/Notification/Notification';
 import Audio from '../components/Audio/Audio';
-import { DEFAULT_ROUND_TIME, BOARD_ROWS, BOARD_COLUMNS } from '../constants';
 
 function App() {
   const [state, dispatch] = useReducer(appReducer, {
@@ -301,7 +301,7 @@ function App() {
         lollipopCell={state.lollipopCell}
         icecreamCell={state.icecreamCell}
       />
-      <Notification show={!state.isGameActive} gameOver={state.time === 0} />
+      <Notification show={!state.isGameActive} gameOver={state.timeLeft === 0} />
     </div>
   );
 }
