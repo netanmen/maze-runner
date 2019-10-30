@@ -10,10 +10,10 @@ import activeRoundAudio from '../assets/audio/maze.mp3';
 import finishRoundAudio from '../assets/audio/level_end.mp3';
 import Audio from '../components/Audio';
 
-
-const DEFAULT_ROUND_TIME = 16;
+// const DEFAULT_ROUND_TIME = 60;
 // const ROWS = 17;
-// const COLS = 33;
+// const COLS = 33; 
+const DEFAULT_ROUND_TIME = 3;
 const BOARD_ROWS = 4;
 const BOARD_COLUMNS = 4;
 
@@ -22,15 +22,31 @@ function reducer(state, action) {
     case 'startGame': {
       return {
         ...state,
+        isGameActive: true,
+        isRoundActive: true,
         maze: action.payload.maze,
         currentCell: action.payload.maze.startCell,
-        isGameActive: true,
-        roundTime: action.payload.roundTime,
-        timeLeft: action.payload.roundTime,
+        roundTime: DEFAULT_ROUND_TIME,
+        timeLeft: DEFAULT_ROUND_TIME,
+        round: 1,
+        points: 0,
         lollipopCell: undefined,
         icecreamCell: undefined,
-        audio: activeRoundAudio,
-        play: true
+        audio: activeRoundAudio
+      };
+    }
+    case 'startRound': {
+      return {
+        ...state,
+        isRoundActive: true,
+        maze: action.payload.maze,
+        currentCell: action.payload.maze.startCell,
+        roundTime: action.payload.roundTime,
+        timeLeft: action.payload.roundTime,
+        round: state.round + 1,
+        lollipopCell: undefined,
+        icecreamCell: undefined,
+        audio: activeRoundAudio
       };
     }
     case 'createLollipop': {
@@ -77,22 +93,18 @@ function reducer(state, action) {
     case 'finishRound': {
       return {
         ...state,
-        isGameActive: false,
-        round: state.round + 1,
+        isRoundActive: false,
         points: state.points + action.payload.bonusPoints,
-        audio: finishRoundAudio,
-        play: false
+        audio: finishRoundAudio
       };
     }
     case 'endGame': {
       return {
         ...state,
         isGameActive: false,
-        roundTime: DEFAULT_ROUND_TIME,
-        round: 1,
-        points: 0,
+        isRoundActive: false,
         hiScore: Math.max(state.hiScore, state.points),
-        play: false
+        audio: null
       };
     }
     default:
@@ -102,7 +114,8 @@ function reducer(state, action) {
 
 function App() {
   const [state, dispatch] = useReducer(reducer, {
-    isGameActive: false,
+    isGameActive: undefined,
+    isRoundActive: undefined,
     points: 0,
     round: 1,
     hiScore: 0,
@@ -112,8 +125,7 @@ function App() {
     currentCell: undefined,
     lollipopCell: undefined,
     icecreamCell: undefined,
-    audio: undefined,
-    play: undefined
+    audio: undefined
   });
 
   const areCellsEqual = useCallback((sourceCell, targetCell) => {
@@ -167,106 +179,46 @@ function App() {
   }, [state.round, state.timeLeft]);
 
   useEffect(() => {
-    if (state.isGameActive && state.maze) {
-      if (hasUserReachedCell(state.maze.endCell)) {
+    if (state.isRoundActive) {
+      if (!!state.maze && hasUserReachedCell(state.maze.endCell)) {
         handleFinishRound();
       }
     }
   }, [
-    state.isGameActive,
-    state.currentCell,
+    state.isRoundActive,
     state.maze,
-    handleFinishRound,
-    hasUserReachedCell
+    hasUserReachedCell,
+    handleFinishRound
   ]);
 
-  const handleAudio = useCallback(() => {
-    // const audio = document.getElementById('audio').play();
-    const audio = document.getElementById('audio');
-    if (state.play) {
-      audio.src = activeRoundAudio;
-      audio.loop = true;
-      audio.currentTime = 0;
-      audio.play();
-    }
-    if (state.play === false) {
-      audio.src = finishRoundAudio;
-      audio.loop = false;
-      audio.play();
-    }
-    // state.play ? audio.play() : audio.pause();
-    console.log('state.play', state.play);
-    // const src = document.getElementById('src');
+  const handleStartRound = useCallback(() => {
+    console.log('handleStartRound!');
 
-    // const audio = new Audio();
-    // audio.src = '../assets/audio/maze.mp3';
-    // audio.src = '../assets/audio/maze.mp3';
-    // audio.loop = true;
-    // const playPromise = audio.play();
-    // playPromise
-    //   .then(() => {
-    //     console.log('Inside first promise: ', playPromise);
-    //     console.log({ playPromise });
-    //   })
-    //   .catch(err => console.error('Error in playPromise!', err));
-
-    // if (playPromise !== undefined) {
-    //   console.log('Inside SECOND before THEN promise: ', playPromise);
-    //   playPromise
-    //     .then(() => {
-    //       console.log('Inside SECOND promise: ', playPromise);
-    //       console.log({ playPromise });
-    //     })
-    //     .catch(err => console.error('Error in playPromise!', err));
-    // }
-
-    // console.log({ audio });
-    // console.log({ src });
-    // console.log('After promise: ', playPromise);
-  }, [state.play]);
-
-  useEffect(() => {
-    handleAudio();
-    // const audio = document.getElementById('audio');
-    // const src = document.getElementById('src');
-
-    // // const audio = new Audio();
-    // // audio.src = '../assets/audio/maze.mp3';
-    // // audio.src = '../assets/audio/maze.mp3';
-    // // audio.loop = true;
-    // audio.play();
-    // const playPromise = audio.play();
-    // playPromise
-    //   .then(() => {
-    //     console.log('Inside first promise: ', playPromise);
-    //     console.log({ playPromise });
-    //   })
-    //   .catch(err => console.error('Error in playPromise!', err));
-
-    // if (playPromise !== undefined) {
-    //   console.log('Inside SECOND before THEN promise: ', playPromise);
-    //   playPromise
-    //     .then(() => {
-    //       console.log('Inside SECOND promise: ', playPromise);
-    //       console.log({ playPromise });
-    //     })
-    //     .catch(err => console.error('Error in playPromise!', err));
-    // }
-
-    // console.log({ audio });
-    // console.log({ src });
-    // console.log('After promise: ', playPromise);
-  }, [handleAudio]);
-
-  const handleStartGame = useCallback(() => {dispatch({
-      type: 'startGame',
+    dispatch({
+      type: 'startRound',
       payload: {
         maze: new MazeGenerator(BOARD_ROWS, BOARD_COLUMNS).generate(),
-        roundTime: Math.max(state.timeLeft, DEFAULT_ROUND_TIME),
-        audio: undefined
+        roundTime: Math.max(state.timeLeft, DEFAULT_ROUND_TIME)
       }
     });
   }, [state.timeLeft]);
+
+  const handleStartGame = useCallback(() => {
+    console.log('handleStartGame');
+
+    dispatch({
+      type: 'startGame',
+      payload: {
+        maze: new MazeGenerator(BOARD_ROWS, BOARD_COLUMNS).generate(),
+        roundTime: Math.max(state.timeLeft, DEFAULT_ROUND_TIME)
+      }
+    });
+  }, [state.timeLeft]);
+
+  // const handleAudioEnd = () => {
+  //   console.log('Audio ended! Points:', state.points);
+  //   handleStartGame();
+  // };
 
   useEffect(() => {
     if (!state.isGameActive) {
@@ -282,8 +234,6 @@ function App() {
       };
     }
   }, [state.isGameActive, handleStartGame]);
-
-  useEffect(() => {}, []);
 
   const handleCreateLollipop = useCallback(() => {
     const lollipopCell = getRandomCell();
@@ -411,7 +361,7 @@ function App() {
   );
 
   useEffect(() => {
-    if (state.isGameActive) {
+    if (state.isRoundActive) {
       const onKeyDown = e => {
         if (e.keyCode >= 37 && e.keyCode <= 40) {
           handleUserMovement(e.keyCode);
@@ -423,13 +373,13 @@ function App() {
         window.removeEventListener('keydown', onKeyDown);
       };
     }
-  }, [state.isGameActive, handleUserMovement]);
+  }, [state.isRoundActive, handleUserMovement]);
 
   useInterval(
     () => {
       dispatch({ type: 'decrementTime' });
     },
-    state.isGameActive ? 1000 : null
+    state.isRoundActive ? 1000 : null
   );
 
   useEffect(() => {
@@ -437,17 +387,14 @@ function App() {
       dispatch({ type: 'endGame' });
     }
   }, [state.timeLeft]);
-  
-  // <source src="./maze.mp3"/>
-  // <audio ref={ref => (state.audio = ref)} />
+
   return (
     <div className={styles.root}>
-      {/* <Audio /> */}
-      <div>
-        <audio controls id="audio" src={activeRoundAudio}>
-          Your browser does not support the <code>audio</code> element.
-        </audio>
-      </div>
+      <Audio
+        source={state.audio}
+        shouldLoop={state.isRoundActive}
+        handleAudioEnd={handleStartRound}
+      />
       <Header
         hiScore={state.hiScore}
         points={state.points}
@@ -460,10 +407,7 @@ function App() {
         lollipopCell={state.lollipopCell}
         icecreamCell={state.icecreamCell}
       />
-      <Notification
-        show={!state.isGameActive}
-        gameOver={state.timeLeft === 0}
-      />
+      <Notification show={!state.isGameActive} gameOver={state.time === 0} />
     </div>
   );
 }
