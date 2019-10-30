@@ -1,9 +1,9 @@
 import React, {useEffect, useRef, useState} from 'react';
 import styles from './Board.module.css';
 import PropTypes from 'prop-types';
-import logoImage from './assets/images/logo.svg';
-import lollipopImage from './assets/images/lollipop.svg';
-import icecreamImage from './assets/images/ice_cream.svg';
+import logoImage from '../../assets/images/logo.svg';
+import lollipopImage from '../../assets/images/lollipop.svg';
+import icecreamImage from '../../assets/images/ice_cream.svg';
 
 function Board(props) {
     const {maze, currentCell, lollipopCell, icecreamCell} = props;

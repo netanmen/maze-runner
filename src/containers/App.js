@@ -2,118 +2,16 @@ import React, { useCallback, useEffect, useReducer } from 'react';
 import useInterval from '@use-it/interval';
 
 import styles from './App.module.css';
-import MazeGenerator from '../maze/MazeGenerator';
-import Board from '../Board';
-import Header from '../Header';
-import Notification from '../Notification';
-import activeRoundAudio from '../assets/audio/maze.mp3';
-import finishRoundAudio from '../assets/audio/level_end.mp3';
-import Audio from '../components/Audio';
-
-// const DEFAULT_ROUND_TIME = 60;
-// const ROWS = 17;
-// const COLS = 33; 
-const DEFAULT_ROUND_TIME = 3;
-const BOARD_ROWS = 4;
-const BOARD_COLUMNS = 4;
-
-function reducer(state, action) {
-  switch (action.type) {
-    case 'startGame': {
-      return {
-        ...state,
-        isGameActive: true,
-        isRoundActive: true,
-        maze: action.payload.maze,
-        currentCell: action.payload.maze.startCell,
-        roundTime: DEFAULT_ROUND_TIME,
-        timeLeft: DEFAULT_ROUND_TIME,
-        round: 1,
-        points: 0,
-        lollipopCell: undefined,
-        icecreamCell: undefined,
-        audio: activeRoundAudio
-      };
-    }
-    case 'startRound': {
-      return {
-        ...state,
-        isRoundActive: true,
-        maze: action.payload.maze,
-        currentCell: action.payload.maze.startCell,
-        roundTime: action.payload.roundTime,
-        timeLeft: action.payload.roundTime,
-        round: state.round + 1,
-        lollipopCell: undefined,
-        icecreamCell: undefined,
-        audio: activeRoundAudio
-      };
-    }
-    case 'createLollipop': {
-      return {
-        ...state,
-        lollipopCell: action.payload.lollipopCell
-      };
-    }
-    case 'createIcecream': {
-      return {
-        ...state,
-        icecreamCell: action.payload.icecreamCell
-      };
-    }
-    case 'decrementTime': {
-      return {
-        ...state,
-        timeLeft: state.timeLeft - 1
-      };
-    }
-    case 'movePlayer': {
-      return {
-        ...state,
-        currentCell: action.payload.currentCell,
-        points: state.points + 10
-      };
-    }
-    case 'lollipopBonus': {
-      return {
-        ...state,
-        lollipopCell: undefined,
-        points: state.points + action.payload.bonusPoints,
-        timeLeft: state.timeLeft + action.payload.bonusTime
-      };
-    }
-    case 'icecreamBonus': {
-      return {
-        ...state,
-        icecreamCell: undefined,
-        points: state.points + action.payload.bonusPoints,
-        timeLeft: state.timeLeft + action.payload.bonusTime
-      };
-    }
-    case 'finishRound': {
-      return {
-        ...state,
-        isRoundActive: false,
-        points: state.points + action.payload.bonusPoints,
-        audio: finishRoundAudio
-      };
-    }
-    case 'endGame': {
-      return {
-        ...state,
-        isGameActive: false,
-        isRoundActive: false,
-        hiScore: Math.max(state.hiScore, state.points),
-        audio: null
-      };
-    }
-    default:
-      throw new Error('Unknown action');
-  }
-}
+import appReducer from './appReducer';
+import MazeGenerator from '../components/Maze/MazeGenerator';
+import Board from '../components/Board/Board';
+import Header from '../components/Header/Header';
+import Notification from '../components/Notification/Notification';
+import Audio from '../components/Audio/Audio';
+import { DEFAULT_ROUND_TIME, BOARD_ROWS, BOARD_COLUMNS } from '../constants';
 
 function App() {
-  const [state, dispatch] = useReducer(reducer, {
+  const [state, dispatch] = useReducer(appReducer, {
     isGameActive: undefined,
     isRoundActive: undefined,
     points: 0,
@@ -125,7 +23,7 @@ function App() {
     currentCell: undefined,
     lollipopCell: undefined,
     icecreamCell: undefined,
-    audio: undefined
+    audioSource: undefined
   });
 
   const areCellsEqual = useCallback((sourceCell, targetCell) => {
@@ -184,12 +82,7 @@ function App() {
         handleFinishRound();
       }
     }
-  }, [
-    state.isRoundActive,
-    state.maze,
-    hasUserReachedCell,
-    handleFinishRound
-  ]);
+  }, [state.isRoundActive, state.maze, hasUserReachedCell, handleFinishRound]);
 
   const handleStartRound = useCallback(() => {
     console.log('handleStartRound!');
@@ -315,7 +208,8 @@ function App() {
     hasUserReachedCell
   ]);
 
-  const handleUserMovement = useCallback(arrowKeyCode => {
+  const handleUserMovement = useCallback(
+    arrowKeyCode => {
       const [x, y] = state.currentCell;
       const [topWall, rightWall, bottomWall, leftWall] = state.maze.cells[
         y * BOARD_COLUMNS + x
@@ -391,7 +285,7 @@ function App() {
   return (
     <div className={styles.root}>
       <Audio
-        source={state.audio}
+        source={state.audioSource}
         shouldLoop={state.isRoundActive}
         handleAudioEnd={handleStartRound}
       />
