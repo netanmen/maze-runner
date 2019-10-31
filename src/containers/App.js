@@ -3,8 +3,8 @@ import useInterval from '@use-it/interval';
 
 import {
   DEFAULT_ROUND_TIME,
-  BOARD_ROWS,
-  BOARD_COLUMNS,
+  ROWS,
+  COLS,
   LOLLIPOP,
   ICECREAM
 } from '../constants';
@@ -41,8 +41,8 @@ function App() {
   );
 
   const getRandomCell = useCallback(() => {
-    const randomX = Math.floor(Math.random() * Math.floor(BOARD_ROWS));
-    const randomY = Math.floor(Math.random() * Math.floor(BOARD_COLUMNS));
+    const randomX = Math.floor(Math.random() * Math.floor(ROWS));
+    const randomY = Math.floor(Math.random() * Math.floor(COLS));
     let randomCell = [randomX, randomY];
     if (!!state.maze && areCellsEqual(randomCell, state.maze.endCell)) {
       randomCell = getRandomCell();
@@ -73,7 +73,7 @@ function App() {
     dispatch({
       type: 'startRound',
       payload: {
-        maze: new MazeGenerator(BOARD_ROWS, BOARD_COLUMNS).generate(),
+        maze: new MazeGenerator(ROWS, COLS).generate(),
         roundTime: Math.max(state.timeLeft, DEFAULT_ROUND_TIME)
       }
     });
@@ -83,7 +83,7 @@ function App() {
     dispatch({
       type: 'startGame',
       payload: {
-        maze: new MazeGenerator(BOARD_ROWS, BOARD_COLUMNS).generate(),
+        maze: new MazeGenerator(ROWS, COLS).generate(),
         roundTime: Math.max(state.timeLeft, DEFAULT_ROUND_TIME)
       }
     });
@@ -173,7 +173,7 @@ function App() {
   const handleUserMovement = useCallback(arrowKeyCode => {
       const [x, y] = state.currentCell;
       const [topWall, rightWall, bottomWall, leftWall] = state.maze.cells[
-        y * BOARD_COLUMNS + x
+        y * COLS + x
       ];
       let newCell = null;
 
@@ -189,12 +189,12 @@ function App() {
           }
           break;
         case 39:
-          if (!rightWall && x < BOARD_COLUMNS) {
+          if (!rightWall && x < COLS) {
             newCell = [x + 1, y];
           }
           break;
         case 40:
-          if (!bottomWall && y < BOARD_ROWS) {
+          if (!bottomWall && y < ROWS) {
             newCell = [x, y + 1];
           }
           break;
