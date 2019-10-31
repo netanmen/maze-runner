@@ -7,9 +7,16 @@ import { areCellsEqual } from '../../utility/utility';
 import logoImage from '../../assets/images/logo.svg';
 import lollipopImage from '../../assets/images/lollipop.svg';
 import icecreamImage from '../../assets/images/ice_cream.svg';
+import { LOLLIPOP, ICECREAM } from '../../constants';
 
 function Board(props) {
-  const { maze, isRoundActive, currentCell, lollipopCell, icecreamCell } = props;
+  const {
+    maze,
+    isRoundActive,
+    currentCell,
+    lollipopCell,
+    icecreamCell
+  } = props;
   const mazeCanvas = useRef(null);
   const container = useRef(null);
   const [goalText, setGoalText] = useState('Goal');
@@ -46,7 +53,12 @@ function Board(props) {
       }
 
       mazeCtx.fillStyle = 'blue';
-      mazeCtx.fillRect(0, 0, mazeCanvas.current.width, mazeCanvas.current.height);
+      mazeCtx.fillRect(
+        0,
+        0,
+        mazeCanvas.current.width,
+        mazeCanvas.current.height
+      );
 
       const blockWidth = Math.floor(mazeCanvas.current.width / maze.cols);
       const blockHeight = Math.floor(mazeCanvas.current.height / maze.rows);
@@ -168,54 +180,64 @@ function Board(props) {
         console.log('lollipop Reached! at Board');
       }
     }
-    // if (icecreamCell) {
-    //     console.log('icecreamCell exists!', icecreamCell);
-    //     if (hasUserReachedCell(icecreamCell)) {
-    //     console.log('icecream Reached! at Board');
 
-    //     const blockWidth = Math.floor(canvas.current.width / maze.cols);
-    //     const blockHeight = Math.floor(canvas.current.height / maze.rows);
-    //     const xOffset = Math.floor(
-    //       (canvas.current.width - maze.cols * blockWidth) / 2
-    //     );
-    //     const textSize = Math.min(blockWidth, blockHeight);
-    //     ctx.fillStyle = 'red';
-    //     ctx.font = '20px "Joystix"';
-    //     ctx.textBaseline = 'top';
-    //     ctx.fillText(
-    //       'TESTING!',
-    //       maze.endCell[1] * blockWidth + xOffset + (blockWidth - textSize) / 2,
-    //       maze.endCell[0] * blockHeight + (blockHeight - textSize) / 2,
-    //       textSize
-    //     );
-    //     // handleIcecreamBonus();
-    //   }
-    // }
+    if (lollipopCell && hasUserReachedCell(lollipopCell)) {
+      console.log('lollipop Reached! at Board');
+      SetReachedIcecreamCell(lollipopCell);
+    }
+
+    if (mazeCtx && reachedLollipopCell) {
+      const blockWidth = Math.floor(mazeCanvas.current.width / maze.cols);
+      const blockHeight = Math.floor(mazeCanvas.current.height / maze.rows);
+      const xOffset = Math.floor(
+        (mazeCanvas.current.width - maze.cols * blockWidth) / 2
+      );
+      const textSize = Math.min(blockWidth, blockHeight);
+      mazeCtx.fillStyle = 'red';
+      mazeCtx.font = '20px "Joystix"';
+      mazeCtx.textBaseline = 'top';
+      mazeCtx.fillText(
+        `+${LOLLIPOP.BONUS_POINTS}`,
+        reachedLollipopCell[0] * blockWidth +
+          xOffset +
+          (blockWidth - textSize) / 2,
+        reachedLollipopCell[1] * blockHeight + (blockHeight - textSize) / 2,
+        textSize
+      );
+    }
 
     if (icecreamCell && hasUserReachedCell(icecreamCell)) {
       console.log('icecream Reached! at Board');
       SetReachedIcecreamCell(icecreamCell);
     }
-    
+
     if (mazeCtx && reachedIcecreamCell) {
-        const blockWidth = Math.floor(mazeCanvas.current.width / maze.cols);
-        const blockHeight = Math.floor(mazeCanvas.current.height / maze.rows);
-        const xOffset = Math.floor(
-          (mazeCanvas.current.width - maze.cols * blockWidth) / 2
-        );
-        const textSize = Math.min(blockWidth, blockHeight);
-        mazeCtx.fillStyle = 'red';
-        mazeCtx.font = '20px "Joystix"';
-        mazeCtx.textBaseline = 'top';
-        mazeCtx.fillText(
-          'TESTING!',
-          reachedIcecreamCell[1] * blockWidth + xOffset + (blockWidth - textSize) / 2,
-          reachedIcecreamCell[0] * blockHeight + (blockHeight - textSize) / 2,
-          textSize
-        );
-        // handleIcecreamBonus();
+      const blockWidth = Math.floor(mazeCanvas.current.width / maze.cols);
+      const blockHeight = Math.floor(mazeCanvas.current.height / maze.rows);
+      const xOffset = Math.floor(
+        (mazeCanvas.current.width - maze.cols * blockWidth) / 2
+      );
+      const textSize = Math.min(blockWidth, blockHeight);
+      mazeCtx.fillStyle = 'red';
+      mazeCtx.font = '20px "Joystix"';
+      mazeCtx.textBaseline = 'top';
+      mazeCtx.fillText(
+        `+${ICECREAM.BONUS_POINTS}`,
+        reachedIcecreamCell[0] * blockWidth +
+          xOffset +
+          (blockWidth - textSize) / 2,
+        reachedIcecreamCell[1] * blockHeight + (blockHeight - textSize) / 2,
+        textSize
+      );
     }
-  }, [lollipopCell, icecreamCell, hasUserReachedCell, mazeCtx, maze, reachedIcecreamCell]);
+  }, [
+    lollipopCell,
+    icecreamCell,
+    hasUserReachedCell,
+    mazeCtx,
+    maze,
+    reachedIcecreamCell
+  ]);
 
   useInterval(() => {
     if (reachedLollipopCell) {
@@ -229,16 +251,16 @@ function Board(props) {
   }, 3000);
 
   useEffect(() => {
-   if (!isRoundActive) {
-     setReachedLollipopCell(null);
-     SetReachedIcecreamCell(null);
-   } 
-  },[isRoundActive, setReachedLollipopCell, SetReachedIcecreamCell])
+    if (!isRoundActive) {
+      setReachedLollipopCell(null);
+      SetReachedIcecreamCell(null);
+    }
+  }, [isRoundActive, setReachedLollipopCell, SetReachedIcecreamCell]);
 
   useInterval(() => {
     setGoalText(goalText ? '' : 'Goal');
   }, 1000);
-  
+
   return (
     <div className={styles.root} ref={container}>
       <canvas ref={mazeCanvas} />

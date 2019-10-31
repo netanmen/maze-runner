@@ -8,7 +8,7 @@
     NAME: 'lollipop',
     BONUS_POINTS: 5000,
     BONUS_TIME: 15,
-    CREATE_ON_TIME_PASSED: 30
+    CREATE_ON_TIME_PASSED: 0
   }
   export const ICECREAM = {
     NAME: 'icecream',
@@ -16,7 +16,3 @@
     BONUS_TIME: 30,
     CREATE_ON_TIME_LEFT: 15
   }
-  // export const LOLLIPOP_BONUS_POINTS = 5000;
-  // export const LOLLIPOP_BONUS_TIME = 15;
-  // export const ICECREAM_BONUS_POINTS = 10000;
-  // export const ICECREAM_BONUS_TIME = 30;

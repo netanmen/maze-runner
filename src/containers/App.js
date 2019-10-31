@@ -33,28 +33,6 @@ function App() {
     audioSource: undefined
   });
 
-  // const areCellsEqual = useCallback((sourceCell, targetCell) => {
-  //   if (!targetCell) {
-  //     throw new Error(
-  //       'ERROR at hasUserReachedCell: no targetCell.',
-  //       targetCell
-  //     );
-  //   }
-  //   if (!sourceCell) {
-  //     throw new Error(
-  //       'ERROR at hasUserReachedCell: no sourceCell.',
-  //       sourceCell
-  //     );
-  //   }
-  //   const [sourceX, sourceY] = sourceCell;
-  //   const [targetX, targetY] = targetCell;
-  //   if (sourceX === targetX && sourceY === targetY) {
-  //     return true;
-  //   } else {
-  //     return false;
-  //   }
-  // }, []);
-
   const hasUserReachedCell = useCallback(
     targetCell => {
       return areCellsEqual(state.currentCell, targetCell);
@@ -92,8 +70,6 @@ function App() {
   }, [state.isRoundActive, state.maze, hasUserReachedCell, handleFinishRound]);
 
   const handleStartRound = useCallback(() => {
-    console.log('handleStartRound!');
-
     dispatch({
       type: 'startRound',
       payload: {
@@ -104,8 +80,6 @@ function App() {
   }, [state.timeLeft]);
 
   const handleStartGame = useCallback(() => {
-    console.log('handleStartGame');
-
     dispatch({
       type: 'startGame',
       payload: {
