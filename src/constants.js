@@ -9,6 +9,7 @@
     BONUS_POINTS: 5000,
     BONUS_TIME: 15,
     CREATE_ON_TIME_PASSED: 0
+    // CREATE_ON_TIME_PASSED: 30
   }
   export const ICECREAM = {
     NAME: 'icecream',

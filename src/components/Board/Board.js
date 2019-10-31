@@ -18,78 +18,70 @@ function Board(props) {
     icecreamCell
   } = props;
   const mazeCanvas = useRef(null);
-  const objectsCanvas = useRef(null);
+  const playerCanvas = useRef(null);
   const goalCanvas = useRef(null);
   const container = useRef(null);
-  const [goalText, setGoalText] = useState('Goal');
+  const [goalText, setGoalText] = useState('');
   const [reachedLollipopAtCell, setReachedLollipopAtCell] = useState(null);
   const [reachedIcecreamAtCell, SetReachedIcecreamAtCell] = useState(null);
   const [mazeCtx, setMazeCtx] = useState(undefined);
-  const [objectsCtx, setObjectsCtx] = useState(undefined);
+  const [playerCtx, setPlayersCtx] = useState(undefined);
   const [goalCtx, setGoalCtx] = useState(undefined);
 
-  useEffect(() => {
+  const initializeCanvas = useCallback((canvas, setCanvasContext) => {
     const fitToContainer = () => {
       const { offsetWidth, offsetHeight } = container.current;
-      mazeCanvas.current.width = offsetWidth;
-      mazeCanvas.current.height = offsetHeight;
-      mazeCanvas.current.style.width = offsetWidth + 'px';
-      mazeCanvas.current.style.height = offsetHeight + 'px';
-
-      objectsCanvas.current.width = offsetWidth;
-      objectsCanvas.current.height = offsetHeight;
-      objectsCanvas.current.style.width = offsetWidth + 'px';
-      objectsCanvas.current.style.height = offsetHeight + 'px';
-
-      goalCanvas.current.width = offsetWidth;
-      goalCanvas.current.height = offsetHeight;
-      goalCanvas.current.style.width = offsetWidth + 'px';
-      goalCanvas.current.style.height = offsetHeight + 'px';
+      canvas.current.width = offsetWidth;
+      canvas.current.height = offsetHeight;
+      canvas.current.style.width = offsetWidth + 'px';
+      canvas.current.style.height = offsetHeight + 'px';
     };
 
-    setMazeCtx(mazeCanvas.current.getContext('2d'));
-    setObjectsCtx(objectsCanvas.current.getContext('2d'));
-    setGoalCtx(goalCanvas.current.getContext('2d'));
+    setCanvasContext(canvas.current.getContext('2d'));
     setTimeout(fitToContainer, 0);
   }, []);
 
-  // goal
   useEffect(() => {
-    const draw = () => {
-      if (!maze) {
-        return;
-      }
+    initializeCanvas(mazeCanvas, setMazeCtx);
+    initializeCanvas(playerCanvas, setPlayersCtx);
+    initializeCanvas(goalCanvas, setGoalCtx);
+  }, [initializeCanvas]);
 
-      goalCtx.fillStyle = 'transparent';
-      goalCtx.clearRect(
-        0,
-        0,
-        goalCanvas.current.width,
-        goalCanvas.current.height
-      );
+  const drawGoal = useCallback(() => {
+    if (!maze) {
+      return;
+    }
 
-      const blockWidth = Math.floor(goalCanvas.current.width / maze.cols);
-      const blockHeight = Math.floor(goalCanvas.current.height / maze.rows);
-      const xOffset = Math.floor(
-        (goalCanvas.current.width - maze.cols * blockWidth) / 2
-      );
+    goalCtx.fillStyle = 'transparent';
+    goalCtx.clearRect(
+      0,
+      0,
+      goalCanvas.current.width,
+      goalCanvas.current.height
+    );
 
-      const textSize = Math.min(blockWidth, blockHeight);
-      goalCtx.fillStyle = 'red';
-      goalCtx.font = '20px "Joystix"';
-      goalCtx.textBaseline = 'top';
-      console.log({ goalText });
+    const blockWidth = Math.floor(goalCanvas.current.width / maze.cols);
+    const blockHeight = Math.floor(goalCanvas.current.height / maze.rows);
+    const xOffset = Math.floor(
+      (goalCanvas.current.width - maze.cols * blockWidth) / 2
+    );
 
-      goalCtx.fillText(
-        goalText,
-        maze.endCell[1] * blockWidth + xOffset + (blockWidth - textSize) / 2,
-        maze.endCell[0] * blockHeight + (blockHeight - textSize) / 2,
-        textSize
-      );
-    };
+    const textSize = Math.min(blockWidth, blockHeight);
+    goalCtx.fillStyle = 'red';
+    goalCtx.font = '20px "Joystix"';
+    goalCtx.textBaseline = 'top';
 
-    draw();
-  }, [goalCtx, maze, goalText]);
+    goalCtx.fillText(
+      goalText,
+      maze.endCell[1] * blockWidth + xOffset + (blockWidth - textSize) / 2,
+      maze.endCell[0] * blockHeight + (blockHeight - textSize) / 2,
+      textSize
+    );
+  }, [goalCtx, goalText, maze]);
+
+  useEffect(() => {
+    drawGoal();
+  }, [drawGoal]);
 
   // player
   useEffect(() => {
@@ -98,25 +90,25 @@ function Board(props) {
         return;
       }
 
-      objectsCtx.fillStyle = 'transparent';
-      objectsCtx.clearRect(
+      playerCtx.fillStyle = 'transparent';
+      playerCtx.clearRect(
         0,
         0,
-        objectsCanvas.current.width,
-        objectsCanvas.current.height
+        playerCanvas.current.width,
+        playerCanvas.current.height
       );
 
-      const blockWidth = Math.floor(objectsCanvas.current.width / maze.cols);
-      const blockHeight = Math.floor(objectsCanvas.current.height / maze.rows);
+      const blockWidth = Math.floor(playerCanvas.current.width / maze.cols);
+      const blockHeight = Math.floor(playerCanvas.current.height / maze.rows);
       const xOffset = Math.floor(
-        (objectsCanvas.current.width - maze.cols * blockWidth) / 2
+        (playerCanvas.current.width - maze.cols * blockWidth) / 2
       );
 
       const imageSize = 0.75 * Math.min(blockWidth, blockHeight);
 
       const player = new Image(imageSize, imageSize);
       player.onload = () => {
-        objectsCtx.drawImage(
+        playerCtx.drawImage(
           player,
           currentCell[0] * blockWidth + xOffset + (blockWidth - imageSize) / 2,
           currentCell[1] * blockHeight + (blockHeight - imageSize) / 2,
@@ -128,7 +120,7 @@ function Board(props) {
     };
 
     draw();
-  }, [objectsCtx, maze, currentCell]);
+  }, [playerCtx, maze, currentCell]);
 
   // maze
   useEffect(() => {
@@ -317,7 +309,7 @@ function Board(props) {
     <div className={styles.root} ref={container}>
       <canvas ref={mazeCanvas} style={{ zIndex: 1, position: 'absolute' }} />
       <canvas ref={goalCanvas} style={{ zIndex: 2, position: 'absolute' }} />
-      <canvas ref={objectsCanvas} style={{ zIndex: 3, position: 'absolute' }} />
+      <canvas ref={playerCanvas} style={{ zIndex: 3, position: 'absolute' }} />
     </div>
   );
 }
