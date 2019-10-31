@@ -170,8 +170,7 @@ function App() {
     hasUserReachedCell
   ]);
 
-  const handleUserMovement = useCallback(
-    arrowKeyCode => {
+  const handleUserMovement = useCallback(arrowKeyCode => {
       const [x, y] = state.currentCell;
       const [topWall, rightWall, bottomWall, leftWall] = state.maze.cells[
         y * BOARD_COLUMNS + x
