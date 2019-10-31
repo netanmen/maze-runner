@@ -1,6 +1,6 @@
 import activeRoundAudio from '../assets/audio/maze.mp3';
 import finishRoundAudio from '../assets/audio/level_end.mp3';
-import { DEFAULT_ROUND_TIME } from '../constants';
+import { DEFAULT_ROUND_TIME } from '../utility/constants';
 
 function appReducer(state, action) {
   switch (action.type) {

@@ -7,7 +7,7 @@ import logoImage from '../../assets/images/logo.svg';
 import lollipopImage from '../../assets/images/lollipop.svg';
 import icecreamImage from '../../assets/images/ice_cream.svg';
 import { areCellsEqual } from '../../utility/utility';
-import { LOLLIPOP, ICECREAM } from '../../constants';
+import { LOLLIPOP, ICECREAM } from '../../utility/constants';
 
 function Board({
   maze,

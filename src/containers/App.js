@@ -7,10 +7,10 @@ import {
   COLS,
   LOLLIPOP,
   ICECREAM
-} from '../constants';
+} from '../utility/constants';
 import styles from './App.module.css';
 import appReducer from './appReducer';
-import MazeGenerator from '../MazeGenerator';
+import MazeGenerator from '../utility/MazeGenerator';
 import Board from '../components/Board/Board';
 import Header from '../components/Header/Header';
 import Notification from '../components/Notification/Notification';
