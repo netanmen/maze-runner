@@ -10,33 +10,34 @@ import icecreamImage from '../../assets/images/ice_cream.svg';
 
 function Board(props) {
   const { maze, isRoundActive, currentCell, lollipopCell, icecreamCell } = props;
-  const canvas = useRef(null);
+  const mazeCanvas = useRef(null);
   const container = useRef(null);
+  const [goalText, setGoalText] = useState('Goal');
   const [reachedLollipopCell, setReachedLollipopCell] = useState(null);
   const [reachedIcecreamCell, SetReachedIcecreamCell] = useState(null);
   // const [icecreamCell, setIcecreamCell] = useState(icecreamCellProp);
-  const [ctx, setCtx] = useState(undefined);
+  const [mazeCtx, setMazeCtx] = useState(undefined);
 
   useEffect(() => {
     const fitToContainer = () => {
       const { offsetWidth, offsetHeight } = container.current;
-      canvas.current.width = offsetWidth;
-      canvas.current.height = offsetHeight;
-      canvas.current.style.width = offsetWidth + 'px';
-      canvas.current.style.height = offsetHeight + 'px';
+      mazeCanvas.current.width = offsetWidth;
+      mazeCanvas.current.height = offsetHeight;
+      mazeCanvas.current.style.width = offsetWidth + 'px';
+      mazeCanvas.current.style.height = offsetHeight + 'px';
     };
 
-    setCtx(canvas.current.getContext('2d'));
+    setMazeCtx(mazeCanvas.current.getContext('2d'));
     setTimeout(fitToContainer, 0);
   }, []);
 
   useEffect(() => {
     const drawLine = (x1, y1, width, height) => {
-      ctx.strokeStyle = 'white';
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x1 + width, y1 + height);
-      ctx.stroke();
+      mazeCtx.strokeStyle = 'white';
+      mazeCtx.beginPath();
+      mazeCtx.moveTo(x1, y1);
+      mazeCtx.lineTo(x1 + width, y1 + height);
+      mazeCtx.stroke();
     };
 
     const draw = () => {
@@ -44,13 +45,13 @@ function Board(props) {
         return;
       }
 
-      ctx.fillStyle = 'blue';
-      ctx.fillRect(0, 0, canvas.current.width, canvas.current.height);
+      mazeCtx.fillStyle = 'blue';
+      mazeCtx.fillRect(0, 0, mazeCanvas.current.width, mazeCanvas.current.height);
 
-      const blockWidth = Math.floor(canvas.current.width / maze.cols);
-      const blockHeight = Math.floor(canvas.current.height / maze.rows);
+      const blockWidth = Math.floor(mazeCanvas.current.width / maze.cols);
+      const blockHeight = Math.floor(mazeCanvas.current.height / maze.rows);
       const xOffset = Math.floor(
-        (canvas.current.width - maze.cols * blockWidth) / 2
+        (mazeCanvas.current.width - maze.cols * blockWidth) / 2
       );
 
       for (let y = 0; y < maze.rows; y++) {
@@ -85,7 +86,7 @@ function Board(props) {
 
       const player = new Image(imageSize, imageSize);
       player.onload = () => {
-        ctx.drawImage(
+        mazeCtx.drawImage(
           player,
           currentCell[0] * blockWidth + xOffset + (blockWidth - imageSize) / 2,
           currentCell[1] * blockHeight + (blockHeight - imageSize) / 2,
@@ -98,7 +99,7 @@ function Board(props) {
       if (lollipopCell) {
         const lollipop = new Image(imageSize, imageSize);
         lollipop.onload = () => {
-          ctx.drawImage(
+          mazeCtx.drawImage(
             lollipop,
             lollipopCell[0] * blockWidth +
               xOffset +
@@ -115,7 +116,7 @@ function Board(props) {
         console.log('icecream added! icecreamCell: ', icecreamCell);
         const icecream = new Image(imageSize, imageSize);
         icecream.onload = () => {
-          ctx.drawImage(
+          mazeCtx.drawImage(
             icecream,
             icecreamCell[0] * blockWidth +
               xOffset +
@@ -129,11 +130,11 @@ function Board(props) {
       }
 
       const textSize = Math.min(blockWidth, blockHeight);
-      ctx.fillStyle = 'red';
-      ctx.font = '20px "Joystix"';
-      ctx.textBaseline = 'top';
-      ctx.fillText(
-        'Goal',
+      mazeCtx.fillStyle = 'red';
+      mazeCtx.font = '20px "Joystix"';
+      mazeCtx.textBaseline = 'top';
+      mazeCtx.fillText(
+        goalText,
         maze.endCell[1] * blockWidth + xOffset + (blockWidth - textSize) / 2,
         maze.endCell[0] * blockHeight + (blockHeight - textSize) / 2,
         textSize
@@ -141,7 +142,7 @@ function Board(props) {
     };
 
     draw();
-  }, [ctx, currentCell, maze, lollipopCell, icecreamCell]);
+  }, [mazeCtx, currentCell, maze, lollipopCell, icecreamCell, goalText]);
 
   // useEffect(() => {
   //   if (lollipopCellProp && !lollipopCell) {
@@ -196,17 +197,17 @@ function Board(props) {
       SetReachedIcecreamCell(icecreamCell);
     }
     
-    if (ctx && reachedIcecreamCell) {
-        const blockWidth = Math.floor(canvas.current.width / maze.cols);
-        const blockHeight = Math.floor(canvas.current.height / maze.rows);
+    if (mazeCtx && reachedIcecreamCell) {
+        const blockWidth = Math.floor(mazeCanvas.current.width / maze.cols);
+        const blockHeight = Math.floor(mazeCanvas.current.height / maze.rows);
         const xOffset = Math.floor(
-          (canvas.current.width - maze.cols * blockWidth) / 2
+          (mazeCanvas.current.width - maze.cols * blockWidth) / 2
         );
         const textSize = Math.min(blockWidth, blockHeight);
-        ctx.fillStyle = 'red';
-        ctx.font = '20px "Joystix"';
-        ctx.textBaseline = 'top';
-        ctx.fillText(
+        mazeCtx.fillStyle = 'red';
+        mazeCtx.font = '20px "Joystix"';
+        mazeCtx.textBaseline = 'top';
+        mazeCtx.fillText(
           'TESTING!',
           reachedIcecreamCell[1] * blockWidth + xOffset + (blockWidth - textSize) / 2,
           reachedIcecreamCell[0] * blockHeight + (blockHeight - textSize) / 2,
@@ -214,7 +215,7 @@ function Board(props) {
         );
         // handleIcecreamBonus();
     }
-  }, [lollipopCell, icecreamCell, hasUserReachedCell, ctx, maze, reachedIcecreamCell]);
+  }, [lollipopCell, icecreamCell, hasUserReachedCell, mazeCtx, maze, reachedIcecreamCell]);
 
   useInterval(() => {
     if (reachedLollipopCell) {
@@ -234,9 +235,13 @@ function Board(props) {
    } 
   },[isRoundActive, setReachedLollipopCell, SetReachedIcecreamCell])
 
+  useInterval(() => {
+    setGoalText(goalText ? '' : 'Goal');
+  }, 1000);
+  
   return (
     <div className={styles.root} ref={container}>
-      <canvas ref={canvas} />
+      <canvas ref={mazeCanvas} />
     </div>
   );
 }
