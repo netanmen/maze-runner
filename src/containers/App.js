@@ -40,18 +40,21 @@ function App() {
     [state.currentCell]
   );
 
-  const getRandomCell = useCallback(() => {
+  const getRandomPrizeCell = useCallback(() => {
     const randomX = Math.floor(Math.random() * Math.floor(ROWS));
     const randomY = Math.floor(Math.random() * Math.floor(COLS));
     let randomCell = [randomX, randomY];
-    if (!!state.maze && areCellsEqual(randomCell, state.maze.endCell)) {
-      randomCell = getRandomCell();
+    if (state.maze && areCellsEqual(randomCell, state.maze.endCell)) {
+      randomCell = getRandomPrizeCell();
     }
-    if (!!state.lollipopCell && areCellsEqual(randomCell, state.lollipopCell)) {
-      randomCell = getRandomCell();
+    if (state.maze && areCellsEqual(randomCell, state.currentCell)) {
+      randomCell = getRandomPrizeCell();
+    }
+    if (state.lollipopCell && state.icecreamCell && areCellsEqual(state.icecreamCell, state.lollipopCell)) {
+      randomCell = getRandomPrizeCell();
     }
     return randomCell;
-  }, [state.maze, state.lollipopCell]);
+  }, [state.maze, state.currentCell, state.lollipopCell, state.icecreamCell]);
 
   const handleFinishRound = useCallback(() => {
     const bonusPoints = state.round * state.timeLeft * 100;
@@ -105,20 +108,20 @@ function App() {
   }, [state.isGameActive, handleStartGame]);
 
   const handleCreateLollipop = useCallback(() => {
-    const lollipopCell = getRandomCell();
+    const lollipopCell = getRandomPrizeCell();
     dispatch({
       type: 'createLollipop',
       payload: { lollipopCell: lollipopCell }
     });
-  }, [getRandomCell]);
+  }, [getRandomPrizeCell]);
 
   const handleCreateIcecream = useCallback(() => {
-    const icecreamCell = getRandomCell();
+    const icecreamCell = getRandomPrizeCell();
     dispatch({
       type: 'createIcecream',
       payload: { icecreamCell: icecreamCell }
     });
-  }, [getRandomCell]);
+  }, [getRandomPrizeCell]);
 
   useEffect(() => {
     if (state.isGameActive) {
