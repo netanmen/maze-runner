@@ -1,9 +1,6 @@
-  // export const DEFAULT_ROUND_TIME = 60;
-  // export const ROWS = 17;
-  // export const COLS = 33;
-  export const DEFAULT_ROUND_TIME = 16;
-  export const BOARD_ROWS = 4
-  export const BOARD_COLUMNS = 4;
+  export const DEFAULT_ROUND_TIME = 60;
+  export const ROWS = 17;
+  export const COLS = 33;
   export const LOLLIPOP = {
     NAME: 'lollipop',
     BONUS_POINTS: 5000,

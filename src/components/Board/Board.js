@@ -186,7 +186,6 @@ function Board(props) {
     }
 
     if (icecreamCell && hasUserReachedCell(icecreamCell)) {
-      console.log('icecream Reached! at Board');
       SetReachedIcecreamAtCell(icecreamCell);
     }
 
@@ -221,11 +220,9 @@ function Board(props) {
 
   useInterval(() => {
     if (reachedLollipopAtCell) {
-      console.log('lollipop Cleared!');
       setReachedLollipopAtCell(null);
     }
     if (reachedIcecreamAtCell) {
-      console.log('icecream Cleared!');
       SetReachedIcecreamAtCell(null);
     }
   }, 3000);
