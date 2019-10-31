@@ -1,7 +1,13 @@
 import React, { useCallback, useEffect, useReducer } from 'react';
 import useInterval from '@use-it/interval';
 
-import { DEFAULT_ROUND_TIME, BOARD_ROWS, BOARD_COLUMNS } from '../constants';
+import {
+  DEFAULT_ROUND_TIME,
+  BOARD_ROWS,
+  BOARD_COLUMNS,
+  LOLLIPOP,
+  ICECREAM
+} from '../constants';
 import styles from './App.module.css';
 import appReducer from './appReducer';
 import MazeGenerator from '../MazeGenerator';
@@ -9,6 +15,7 @@ import Board from '../components/Board/Board';
 import Header from '../components/Header/Header';
 import Notification from '../components/Notification/Notification';
 import Audio from '../components/Audio/Audio';
+import { areCellsEqual } from '../utility/utility';
 
 function App() {
   const [state, dispatch] = useReducer(appReducer, {
@@ -26,33 +33,33 @@ function App() {
     audioSource: undefined
   });
 
-  const areCellsEqual = useCallback((sourceCell, targetCell) => {
-    if (!targetCell) {
-      throw new Error(
-        'ERROR at hasUserReachedCell: no targetCell.',
-        targetCell
-      );
-    }
-    if (!sourceCell) {
-      throw new Error(
-        'ERROR at hasUserReachedCell: no sourceCell.',
-        sourceCell
-      );
-    }
-    const [sourceX, sourceY] = sourceCell;
-    const [targetX, targetY] = targetCell;
-    if (sourceX === targetX && sourceY === targetY) {
-      return true;
-    } else {
-      return false;
-    }
-  }, []);
+  // const areCellsEqual = useCallback((sourceCell, targetCell) => {
+  //   if (!targetCell) {
+  //     throw new Error(
+  //       'ERROR at hasUserReachedCell: no targetCell.',
+  //       targetCell
+  //     );
+  //   }
+  //   if (!sourceCell) {
+  //     throw new Error(
+  //       'ERROR at hasUserReachedCell: no sourceCell.',
+  //       sourceCell
+  //     );
+  //   }
+  //   const [sourceX, sourceY] = sourceCell;
+  //   const [targetX, targetY] = targetCell;
+  //   if (sourceX === targetX && sourceY === targetY) {
+  //     return true;
+  //   } else {
+  //     return false;
+  //   }
+  // }, []);
 
   const hasUserReachedCell = useCallback(
     targetCell => {
       return areCellsEqual(state.currentCell, targetCell);
     },
-    [state.currentCell, areCellsEqual]
+    [state.currentCell]
   );
 
   const getRandomCell = useCallback(() => {
@@ -66,7 +73,7 @@ function App() {
       randomCell = getRandomCell();
     }
     return randomCell;
-  }, [state.maze, state.lollipopCell, areCellsEqual]);
+  }, [state.maze, state.lollipopCell]);
 
   const handleFinishRound = useCallback(() => {
     const bonusPoints = state.round * state.timeLeft * 100;
@@ -108,11 +115,6 @@ function App() {
     });
   }, [state.timeLeft]);
 
-  // const handleAudioEnd = () => {
-  //   console.log('Audio ended! Points:', state.points);
-  //   handleStartGame();
-  // };
-
   useEffect(() => {
     if (!state.isGameActive) {
       const onKeyDown = e => {
@@ -134,7 +136,6 @@ function App() {
       type: 'createLollipop',
       payload: { lollipopCell: lollipopCell }
     });
-    console.log(`Lollipop added! Cell: `, lollipopCell);
   }, [getRandomCell]);
 
   const handleCreateIcecream = useCallback(() => {
@@ -143,16 +144,15 @@ function App() {
       type: 'createIcecream',
       payload: { icecreamCell: icecreamCell }
     });
-    console.log(`Icecream added! Cell: `, icecreamCell);
   }, [getRandomCell]);
 
   useEffect(() => {
     if (state.isGameActive) {
       const timePassedInRound = state.roundTime - state.timeLeft;
-      if (!state.lollipopCell && timePassedInRound === 30) {
+      if (!state.lollipopCell && timePassedInRound === LOLLIPOP.CREATE_ON_TIME_PASSED) {
         handleCreateLollipop();
       }
-      if (!state.icecreamCell && state.timeLeft === 15) {
+      if (!state.icecreamCell && state.timeLeft === ICECREAM.CREATE_ON_TIME_LEFT) {
         handleCreateIcecream();
       }
     }
@@ -166,45 +166,33 @@ function App() {
     handleCreateIcecream
   ]);
 
-  const handleLollipopBonus = useCallback(() => {
-    dispatch({
-      type: 'lollipopBonus',
-      payload: {
-        bonusPoints: 5000,
-        bonusTime: 15
-      }
-    });
-  }, []);
-
-  const handleIcecreamBonus = useCallback(() => {
-    dispatch({
-      type: 'icecreamBonus',
-      payload: {
-        bonusPoints: 10000,
-        bonusTime: 30
-      }
-    });
+  const handlePrizeBonus = useCallback(prize => {
+    if (prize) {
+      const { NAME, BONUS_POINTS, BONUS_TIME } = prize;
+      dispatch({
+        type: `${NAME}Bonus`,
+        payload: {
+          bonusPoints: BONUS_POINTS,
+          bonusTime: BONUS_TIME
+        }
+      });
+    }
   }, []);
 
   useEffect(() => {
     if (state.isGameActive) {
-      if (state.lollipopCell) {
-        if (hasUserReachedCell(state.lollipopCell)) {
-          handleLollipopBonus();
-        }
+      if (state.lollipopCell && hasUserReachedCell(state.lollipopCell)) {
+        handlePrizeBonus(LOLLIPOP);
       }
-      if (state.icecreamCell) {
-        if (hasUserReachedCell(state.icecreamCell)) {
-          handleIcecreamBonus();
-        }
+      if (state.icecreamCell && hasUserReachedCell(state.icecreamCell)) {
+        handlePrizeBonus(ICECREAM);
       }
     }
   }, [
     state.isGameActive,
     state.lollipopCell,
     state.icecreamCell,
-    handleIcecreamBonus,
-    handleLollipopBonus,
+    handlePrizeBonus,
     hasUserReachedCell
   ]);
 
@@ -297,11 +285,15 @@ function App() {
       />
       <Board
         maze={state.maze}
+        isRoundActive={state.isRoundActive}
         currentCell={state.currentCell}
         lollipopCell={state.lollipopCell}
         icecreamCell={state.icecreamCell}
       />
-      <Notification show={!state.isGameActive} gameOver={state.timeLeft === 0} />
+      <Notification
+        show={!state.isGameActive}
+        gameOver={state.timeLeft === 0}
+      />
     </div>
   );
 }
