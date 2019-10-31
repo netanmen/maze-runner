@@ -174,45 +174,47 @@ function App() {
   ]);
 
   const handleUserMovement = useCallback(arrowKeyCode => {
-      const [x, y] = state.currentCell;
-      const [topWall, rightWall, bottomWall, leftWall] = state.maze.cells[
-        y * COLS + x
-      ];
-      let newCell = null;
-
-      switch (arrowKeyCode) {
-        case 37:
-          if (!leftWall && x > 0) {
-            newCell = [x - 1, y];
-          }
-          break;
-        case 38:
-          if (!topWall && y > 0) {
-            newCell = [x, y - 1];
-          }
-          break;
-        case 39:
-          if (!rightWall && x < COLS) {
-            newCell = [x + 1, y];
-          }
-          break;
-        case 40:
-          if (!bottomWall && y < ROWS) {
-            newCell = [x, y + 1];
-          }
-          break;
-        default:
-          console.error(
-            `No moving direction assigned to pressed key with keycode ${arrowKeyCode}`
-          );
-          break;
-      }
-
-      if (newCell) {
-        dispatch({
-          type: 'movePlayer',
-          payload: { currentCell: newCell }
-        });
+      if (state.currentCell) {
+        const [x, y] = state.currentCell;
+        const [topWall, rightWall, bottomWall, leftWall] = state.maze.cells[
+          y * COLS + x
+        ];
+        let newCell = null;
+  
+        switch (arrowKeyCode) {
+          case 37:
+            if (!leftWall && x > 0) {
+              newCell = [x - 1, y];
+            }
+            break;
+          case 38:
+            if (!topWall && y > 0) {
+              newCell = [x, y - 1];
+            }
+            break;
+          case 39:
+            if (!rightWall && x < COLS) {
+              newCell = [x + 1, y];
+            }
+            break;
+          case 40:
+            if (!bottomWall && y < ROWS) {
+              newCell = [x, y + 1];
+            }
+            break;
+          default:
+            console.error(
+              `No moving direction assigned to pressed key with keycode ${arrowKeyCode}`
+            );
+            break;
+        }
+  
+        if (newCell) {
+          dispatch({
+            type: 'movePlayer',
+            payload: { currentCell: newCell }
+          });
+        }
       }
     },
     [state.currentCell, state.maze]
